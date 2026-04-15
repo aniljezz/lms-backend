@@ -36,7 +36,7 @@ const LeadSchema = new mongoose.Schema({
   service: String,
   message: String,
   source: String,
-  userId: String, // 🔥 link to user
+  userId: String,
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -62,7 +62,7 @@ const auth = (req, res, next) => {
 };
 
 /* =========================
-   🔥 REGISTER API
+   🔥 REGISTER
 ========================= */
 app.post("/api/register", async (req, res) => {
   try {
@@ -75,11 +75,7 @@ app.post("/api/register", async (req, res) => {
 
     const hash = await bcrypt.hash(password, 10);
 
-    await User.create({
-      name,
-      email,
-      password: hash
-    });
+    await User.create({ name, email, password: hash });
 
     res.json({ success: true });
 
@@ -89,7 +85,7 @@ app.post("/api/register", async (req, res) => {
 });
 
 /* =========================
-   🔥 LOGIN API
+   🔥 LOGIN
 ========================= */
 app.post("/api/login", async (req, res) => {
   try {
@@ -117,7 +113,46 @@ app.post("/api/login", async (req, res) => {
 });
 
 /* =========================
-   🔥 ADD LEAD (PROTECTED)
+   🔥 GET PROFILE
+========================= */
+app.get("/api/me", auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+
+    res.json({
+      success: true,
+      user
+    });
+  } catch {
+    res.status(500).json({ success: false });
+  }
+});
+
+/* =========================
+   🔥 UPDATE PROFILE
+========================= */
+app.post("/api/update-profile", auth, async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    const updateData = { name, email };
+
+    if (password && password.length > 0) {
+      const hash = await bcrypt.hash(password, 10);
+      updateData.password = hash;
+    }
+
+    await User.findByIdAndUpdate(req.user.id, updateData);
+
+    res.json({ success: true });
+
+  } catch {
+    res.status(500).json({ success: false });
+  }
+});
+
+/* =========================
+   🔥 ADD LEAD
 ========================= */
 app.post("/api/add-lead", auth, async (req, res) => {
   try {
@@ -146,12 +181,12 @@ app.post("/api/add-lead", auth, async (req, res) => {
       service,
       message,
       source,
-      userId: req.user.id // 🔥 important
+      userId: req.user.id
     });
 
     res.json({ success: true, data: lead });
 
-  } catch (err) {
+  } catch {
     res.status(500).json({ success: false });
   }
 });

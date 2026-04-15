@@ -13,7 +13,7 @@ app.use(express.json());
 // ✅ MongoDB connect
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.log(err));
+  .catch(err => console.log("Mongo Error:", err));
 
 /* =========================
    🔥 USER MODEL
@@ -80,6 +80,7 @@ app.post("/api/register", async (req, res) => {
     res.json({ success: true });
 
   } catch (err) {
+    console.log(err);
     res.status(500).json({ success: false });
   }
 });
@@ -108,6 +109,7 @@ app.post("/api/login", async (req, res) => {
     res.json({ success: true, token });
 
   } catch (err) {
+    console.log(err);
     res.status(500).json({ success: false });
   }
 });
@@ -123,7 +125,8 @@ app.get("/api/me", auth, async (req, res) => {
       success: true,
       user
     });
-  } catch {
+  } catch (err) {
+    console.log(err);
     res.status(500).json({ success: false });
   }
 });
@@ -146,7 +149,8 @@ app.post("/api/update-profile", auth, async (req, res) => {
 
     res.json({ success: true });
 
-  } catch {
+  } catch (err) {
+    console.log(err);
     res.status(500).json({ success: false });
   }
 });
@@ -186,7 +190,8 @@ app.post("/api/add-lead", auth, async (req, res) => {
 
     res.json({ success: true, data: lead });
 
-  } catch {
+  } catch (err) {
+    console.log(err);
     res.status(500).json({ success: false });
   }
 });
@@ -202,6 +207,10 @@ app.get("/api/leads", auth, async (req, res) => {
 });
 
 /* =========================
-   🚀 SERVER
+   🚀 SERVER (FIXED)
 ========================= */
-app.listen(5000, () => console.log("Server running"));
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log("Server running on port " + PORT);
+});
